@@ -1,0 +1,62 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DialIn.VideoEffects.Uwp", "DialIn.VideoEffects.Uwp\DialIn.VideoEffects.Uwp.csproj", "{03D90A64-5A9E-4160-BA26-6F1E44C93DBA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DialIn.VideoEffects.Effects", "DialIn.VideoEffects.Effects\DialIn.VideoEffects.Effects.csproj", "{534312F1-CB8E-4C8F-8E55-3C0BDD789F6F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|ARM = Debug|ARM
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|ARM = Release|ARM
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{03D90A64-5A9E-4160-BA26-6F1E44C93DBA}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{03D90A64-5A9E-4160-BA26-6F1E44C93DBA}.Debug|ARM.ActiveCfg = Debug|ARM
+		{03D90A64-5A9E-4160-BA26-6F1E44C93DBA}.Debug|ARM.Build.0 = Debug|ARM
+		{03D90A64-5A9E-4160-BA26-6F1E44C93DBA}.Debug|ARM.Deploy.0 = Debug|ARM
+		{03D90A64-5A9E-4160-BA26-6F1E44C93DBA}.Debug|x64.ActiveCfg = Debug|x64
+		{03D90A64-5A9E-4160-BA26-6F1E44C93DBA}.Debug|x64.Build.0 = Debug|x64
+		{03D90A64-5A9E-4160-BA26-6F1E44C93DBA}.Debug|x64.Deploy.0 = Debug|x64
+		{03D90A64-5A9E-4160-BA26-6F1E44C93DBA}.Debug|x86.ActiveCfg = Debug|x86
+		{03D90A64-5A9E-4160-BA26-6F1E44C93DBA}.Debug|x86.Build.0 = Debug|x86
+		{03D90A64-5A9E-4160-BA26-6F1E44C93DBA}.Debug|x86.Deploy.0 = Debug|x86
+		{03D90A64-5A9E-4160-BA26-6F1E44C93DBA}.Release|Any CPU.ActiveCfg = Release|x86
+		{03D90A64-5A9E-4160-BA26-6F1E44C93DBA}.Release|ARM.ActiveCfg = Release|ARM
+		{03D90A64-5A9E-4160-BA26-6F1E44C93DBA}.Release|ARM.Build.0 = Release|ARM
+		{03D90A64-5A9E-4160-BA26-6F1E44C93DBA}.Release|ARM.Deploy.0 = Release|ARM
+		{03D90A64-5A9E-4160-BA26-6F1E44C93DBA}.Release|x64.ActiveCfg = Release|x64
+		{03D90A64-5A9E-4160-BA26-6F1E44C93DBA}.Release|x64.Build.0 = Release|x64
+		{03D90A64-5A9E-4160-BA26-6F1E44C93DBA}.Release|x64.Deploy.0 = Release|x64
+		{03D90A64-5A9E-4160-BA26-6F1E44C93DBA}.Release|x86.ActiveCfg = Release|x86
+		{03D90A64-5A9E-4160-BA26-6F1E44C93DBA}.Release|x86.Build.0 = Release|x86
+		{03D90A64-5A9E-4160-BA26-6F1E44C93DBA}.Release|x86.Deploy.0 = Release|x86
+		{534312F1-CB8E-4C8F-8E55-3C0BDD789F6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{534312F1-CB8E-4C8F-8E55-3C0BDD789F6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{534312F1-CB8E-4C8F-8E55-3C0BDD789F6F}.Debug|ARM.ActiveCfg = Debug|ARM
+		{534312F1-CB8E-4C8F-8E55-3C0BDD789F6F}.Debug|ARM.Build.0 = Debug|ARM
+		{534312F1-CB8E-4C8F-8E55-3C0BDD789F6F}.Debug|x64.ActiveCfg = Debug|x64
+		{534312F1-CB8E-4C8F-8E55-3C0BDD789F6F}.Debug|x64.Build.0 = Debug|x64
+		{534312F1-CB8E-4C8F-8E55-3C0BDD789F6F}.Debug|x86.ActiveCfg = Debug|x86
+		{534312F1-CB8E-4C8F-8E55-3C0BDD789F6F}.Debug|x86.Build.0 = Debug|x86
+		{534312F1-CB8E-4C8F-8E55-3C0BDD789F6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{534312F1-CB8E-4C8F-8E55-3C0BDD789F6F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{534312F1-CB8E-4C8F-8E55-3C0BDD789F6F}.Release|ARM.ActiveCfg = Release|ARM
+		{534312F1-CB8E-4C8F-8E55-3C0BDD789F6F}.Release|ARM.Build.0 = Release|ARM
+		{534312F1-CB8E-4C8F-8E55-3C0BDD789F6F}.Release|x64.ActiveCfg = Release|x64
+		{534312F1-CB8E-4C8F-8E55-3C0BDD789F6F}.Release|x64.Build.0 = Release|x64
+		{534312F1-CB8E-4C8F-8E55-3C0BDD789F6F}.Release|x86.ActiveCfg = Release|x86
+		{534312F1-CB8E-4C8F-8E55-3C0BDD789F6F}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
