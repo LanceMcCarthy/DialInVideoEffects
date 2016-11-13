@@ -3,15 +3,12 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
-using System.Runtime.Serialization;
-using Windows.ApplicationModel;
-using Windows.Storage;
 using DialIn.VideoEffects.Effects.Win2D;
 using DialIn.VideoEffects.Uwp.Models;
 
 namespace DialIn.VideoEffects.Uwp.ViewModels
 {
-    public class MainPageViewModel : INotifyPropertyChanged
+    public class EditPhotoPageViewModel : INotifyPropertyChanged
     {
         #region fields
 
@@ -22,15 +19,14 @@ namespace DialIn.VideoEffects.Uwp.ViewModels
 
         #endregion
 
-        public MainPageViewModel()
+        public EditPhotoPageViewModel()
         {
-            if (DesignMode.DesignModeEnabled)
-                return;
+            
         }
 
         #region properties
 
-        public ObservableCollection<VideoEffectItemViewModel> VideoEffects => videoEffects ?? 
+        public ObservableCollection<VideoEffectItemViewModel> VideoEffects => videoEffects ??
             (videoEffects = new ObservableCollection<VideoEffectItemViewModel>
                {
                    new VideoEffectItemViewModel(typeof(EdgeDetectionVideoEffect), "EdgeDetection", "Amount", 0.5f, 1f),
@@ -44,7 +40,7 @@ namespace DialIn.VideoEffects.Uwp.ViewModels
             get { return selectedEffect; }
             set { SetProperty(ref selectedEffect, value); }
         }
-        
+
         public bool IsBusy
         {
             get { return isBusy; }
@@ -58,7 +54,7 @@ namespace DialIn.VideoEffects.Uwp.ViewModels
         }
 
         #endregion
-        
+
         #region INPC
 
         public event PropertyChangedEventHandler PropertyChanged;

@@ -1,17 +1,17 @@
 ﻿<Page x:Name="Page"
-      x:Class="DialIn.VideoEffects.Uwp.MainPage"
-      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:local="using:DialIn.VideoEffects.Uwp"
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-      xmlns:viewModels="using:DialIn.VideoEffects.Uwp.ViewModels"
-      xmlns:converters="using:DialIn.VideoEffects.Uwp.Converters"
-      xmlns:xaml="using:Microsoft.Graphics.Canvas.UI.Xaml"
-      mc:Ignorable="d">
+    x:Class="DialIn.VideoEffects.Uwp.EditPhotoPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:DialIn.VideoEffects.Uwp"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:converters="using:DialIn.VideoEffects.Uwp.Converters"
+    xmlns:xaml="using:Microsoft.Graphics.Canvas.UI.Xaml"
+    xmlns:viewModels="using:DialIn.VideoEffects.Uwp.ViewModels"
+    mc:Ignorable="d">
 
     <Page.DataContext>
-        <viewModels:MainPageViewModel x:Name="PageViewModel" />
+        <viewModels:EditPhotoPageViewModel x:Name="PageViewModel" />
     </Page.DataContext>
 
     <Page.Resources>
@@ -25,12 +25,25 @@
             <RowDefinition />
         </Grid.RowDefinitions>
 
-        <TextBlock Text="Video Editing with RadialController"
+        <TextBlock Text="Photo Editing with RadialController"
                    HorizontalAlignment="Center"
                    Style="{StaticResource TitleTextBlockStyle}" />
 
-        <CaptureElement x:Name="PreviewMediaElement"
-                        Grid.Row="1" />
+        <ScrollViewer Grid.Row="1"
+                      HorizontalScrollMode="Enabled"
+                      VerticalScrollMode="Enabled"
+                      ZoomMode="Disabled"
+                      HorizontalScrollBarVisibility="Auto"
+                      VerticalScrollBarVisibility="Auto"
+                      x:Name="ImageScrollViewer">
+            <Grid>
+                <xaml:CanvasVirtualControl  x:Name="MyCanvas"
+                                            CreateResources="MyCanvas_OnCreateResources"
+                                            RegionsInvalidated="MyCanvas_RegionsInvalidated"/>
+            </Grid>
+        </ScrollViewer>
+
+        
 
         <Grid x:Name="EffectEditorGrid"
               DataContext="{Binding ElementName=Page, Path=DataContext.SelectedEffect}"
@@ -77,15 +90,6 @@
                 </Slider.HeaderTemplate>
             </Slider>
         </Grid>
-
-        <Button x:Name="ReloadVideoStreamButton"
-                Content="Reload Video Stream"
-                Click="ReloadVideoStreamButton_OnClick"
-                Visibility="Collapsed"
-                Grid.Row="1"
-                HorizontalAlignment="Right"
-                VerticalAlignment="Bottom"
-                Margin="10" />
 
         <Grid x:Name="BusyOverlayGrid"
               Visibility="{Binding IsBusy}"

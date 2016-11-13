@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.Devices.Enumeration;
 using Windows.Foundation.Collections;
 using Windows.Media.Capture;
 using Windows.Media.Effects;
+using Windows.Media.MediaProperties;
+using Windows.Storage;
 using Windows.Storage.Streams;
 using Windows.UI.Input;
 using Windows.UI.Popups;
@@ -40,6 +43,8 @@ namespace DialIn.VideoEffects.Uwp
             InitializeComponent();
         }
 
+        #region page lifecycle
+
         protected override async void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
@@ -52,16 +57,20 @@ namespace DialIn.VideoEffects.Uwp
         }
 
         protected override async void OnNavigatedFrom(NavigationEventArgs e)
-        { 
+        {
             base.OnNavigatedFrom(e);
 
-            // Clean up RadialDial
-            dialController.RotationChanged -= DialControllerRotationChanged;
+            // Clean up RadialController
+            dialController.RotationChanged -= DialController_RotationChanged;
             dialController?.Menu.Items.Clear();
 
             // Dispose camera
             await DisposeMediaCaptureAsync();
         }
+
+        #endregion
+
+        #region radial controller 
 
         private void ConfigureRadialController()
         {
@@ -70,7 +79,8 @@ namespace DialIn.VideoEffects.Uwp
             dialController.RotationResolutionInDegrees = 1;
 
             // Wireup event handler for rotation
-            dialController.RotationChanged += DialControllerRotationChanged;
+            dialController.RotationChanged += DialController_RotationChanged;
+            dialController.ButtonClicked += DialController_ButtonClicked;
 
             // Remove the default items to make more room for our custom items
             var config = RadialControllerConfiguration.GetForCurrentView();
@@ -90,11 +100,55 @@ namespace DialIn.VideoEffects.Uwp
                 dialController.Menu.Items.Add(menuItem);
             }
         }
-        
+
+        private async void DialController_ButtonClicked(RadialController sender, RadialControllerButtonClickedEventArgs args)
+        {
+            try
+            {
+                ShowBusyIndicator("Capturing photo...");
+
+                var cacheFolder = ApplicationData.Current.LocalCacheFolder;
+                var file = await cacheFolder.CreateFileAsync("tempImg.jpg", CreationCollisionOption.ReplaceExisting);
+
+                using (var fileStream = await file.OpenStreamForWriteAsync())
+                {
+                    if (previewEffect != null)
+                    {
+                        // We need to make sure the photo stream also has the effect
+                        switch (mediaCapture.MediaCaptureSettings.VideoDeviceCharacteristic)
+                        {
+                            // In these cases, the effect is already applied to the stream that will be used for the photo
+                            case VideoDeviceCharacteristic.AllStreamsIdentical:
+                            case VideoDeviceCharacteristic.PreviewPhotoStreamsIdentical:
+                                break;
+
+                            // However, in these cases, we need to apply the effect to the photo stream
+                            case VideoDeviceCharacteristic.AllStreamsIndependent:
+                            case VideoDeviceCharacteristic.PreviewRecordStreamsIdentical:
+                                await mediaCapture.AddVideoEffectAsync(previewEffect, MediaStreamType.Photo);
+                                break;
+                        }
+                    }
+
+                    await mediaCapture.CapturePhotoToStreamAsync(ImageEncodingProperties.CreateJpeg(), fileStream.AsRandomAccessStream());
+                }
+
+                this.Frame.Navigate(typeof(EditPhotoPage), file.Path);
+            }
+            catch (Exception ex)
+            {
+                await new MessageDialog($"Something went wrong saving the image: {ex}", "Exception").ShowAsync();
+            }
+            finally
+            {
+                HideBusyIndicator();
+            }
+        }
+
         private async void MenuItem_Invoked(RadialControllerMenuItem sender, object args)
         {
             var selectedEffect = PageViewModel.VideoEffects.FirstOrDefault(e => e.DisplayName == sender?.DisplayText);
-            
+
             if (selectedEffect == null)
                 return;
 
@@ -116,47 +170,35 @@ namespace DialIn.VideoEffects.Uwp
             // Apply new effect
             await ApplyVideoEffectAsync();
         }
-        
-        private void DialControllerRotationChanged(RadialController sender, RadialControllerRotationChangedEventArgs args)
+
+        private void DialController_RotationChanged(RadialController sender, RadialControllerRotationChangedEventArgs args)
         {
             if (args == null)
                 return;
 
             // Make sure we're still in range of the effect's property that we're changing
-            if (SelectedEffectSlider.Value < PageViewModel.SelectedEffect.MinPropertyValue 
+            if (SelectedEffectSlider.Value < PageViewModel.SelectedEffect.MinPropertyValue
                 || SelectedEffectSlider.Value > PageViewModel.SelectedEffect.MaxPropertyValue)
                 return;
-            
+
             SelectedEffectSlider.Value += args.RotationDeltaInDegrees / 100;
 
             UpdateEffect();
         }
-        
+
+        #endregion
+
+        #region value changed event handlers
+
         private void SelectedEffectSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
         {
             UpdateEffect();
         }
 
-        /// <summary>
-        /// Shared method to apply changes to the currently applied video effect
-        /// </summary>
-        private void UpdateEffect()
-        {
-            // Update Video Effect's values
-            if (PageViewModel.SelectedEffect == null || effectPropertySet == null)
-                return;
-
-            // Update effect's values
-            PageViewModel.SelectedEffect.PropertyValue = (float) SelectedEffectSlider.Value;
-            effectPropertySet[PageViewModel.SelectedEffect.PropertyName] = (float) PageViewModel.SelectedEffect.PropertyValue;
-        }
+        #endregion
         
         #region Video effect selection, creation and management
-
-        /// <summary>
-        /// Creates a VideoEffectDefinition and it's corresponding property bag to pass the effects's values
-        /// </summary>
-        /// <returns>A video effect definition that can be applied to a video or photo stream</returns>
+        
         private IVideoEffectDefinition ConstructVideoEffect()
         {
             if (string.IsNullOrEmpty(PageViewModel.SelectedEffect.VideoEffect.FullName))
@@ -170,11 +212,7 @@ namespace DialIn.VideoEffects.Uwp
 
             return new VideoEffectDefinition(PageViewModel.SelectedEffect.VideoEffect.FullName, effectPropertySet);
         }
-
-        /// <summary>
-        /// Applies VideoEffectDefinition to the preview stream
-        /// </summary>
-        /// <returns></returns>
+        
         private async Task ApplyVideoEffectAsync()
         {
             if (currentState == RecordingState.Previewing)
@@ -187,17 +225,24 @@ namespace DialIn.VideoEffects.Uwp
                 await new MessageDialog("The preview or recording stream is not available.", "Effect not applied").ShowAsync();
             }
         }
-
-        /// <summary>
-        /// Clears effects from preview stream and sets preview effect to null
-        /// </summary>
-        /// <returns></returns>
+        
         private async Task ClearVideoEffectsAsync()
         {
             await mediaCapture.ClearEffectsAsync(MediaStreamType.VideoPreview);
             previewEffect = null;
         }
         
+        private void UpdateEffect()
+        {
+            // Update Video Effect's values
+            if (PageViewModel.SelectedEffect == null || effectPropertySet == null)
+                return;
+
+            // If we're applying effect to video, update the property bag to communicate the changes to the VideoEffectDefinition
+            PageViewModel.SelectedEffect.PropertyValue = (float) SelectedEffectSlider.Value;
+            effectPropertySet[PageViewModel.SelectedEffect.PropertyName] = (float) PageViewModel.SelectedEffect.PropertyValue;
+        }
+
         #endregion
 
         #region MediaCapture initialization and disposal
