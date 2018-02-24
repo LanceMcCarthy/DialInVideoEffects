@@ -5,7 +5,7 @@ using Windows.Foundation.Collections;
 using Windows.Graphics.DirectX.Direct3D11;
 using Windows.Media.Effects;
 using Windows.Media.MediaProperties;
-using DialIn.VideoEffects.Effects.Helpers;
+using DialIn.VideoEffects.Effects.Common;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.Effects;
 

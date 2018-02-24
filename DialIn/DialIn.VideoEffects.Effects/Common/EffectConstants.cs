@@ -2,7 +2,7 @@
 using Windows.Media.Effects;
 using Windows.Media.MediaProperties;
 
-namespace DialIn.VideoEffects.Effects.Helpers
+namespace DialIn.VideoEffects.Effects.Common
 {
     public static class EffectConstants
     {
@@ -10,9 +10,9 @@ namespace DialIn.VideoEffects.Effects.Helpers
 
         public static IReadOnlyList<VideoEncodingProperties> SupportedEncodingProperties => new List<VideoEncodingProperties>()
         {
-            // NOTE: Specifying width and height is only necessary due to bug in media pipeline when
-            // effect is being used with Media Capture. 
-            // This can be changed to "0, 0" in a future release of FBL_IMPRESSIVE. 
+            // Bug in media pipeline...
+            // When IBasicVideoEffect is used with MediaCapture, I need to explicitly define width and height
+            // This can be changed to "0, 0" in a future release of Windows 10
             VideoEncodingProperties.CreateUncompressed(MediaEncodingSubtypes.Bgra8, 800, 600),
             VideoEncodingProperties.CreateUncompressed(MediaEncodingSubtypes.Argb32, 800, 600)
         };

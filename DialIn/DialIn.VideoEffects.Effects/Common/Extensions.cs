@@ -1,7 +1,7 @@
 ﻿using Windows.Graphics.DirectX;
 using Windows.Graphics.Imaging;
 
-namespace DialIn.VideoEffects.Effects.Helpers
+namespace DialIn.VideoEffects.Effects.Common
 {
     public static class Extensions
     {

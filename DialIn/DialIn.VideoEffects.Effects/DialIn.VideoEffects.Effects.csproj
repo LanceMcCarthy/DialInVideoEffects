@@ -105,8 +105,8 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Helpers\EffectConstants.cs" />
-    <Compile Include="Helpers\Extensions.cs" />
+    <Compile Include="Common\EffectConstants.cs" />
+    <Compile Include="Common\Extensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Win2D\EdgeDetectionVideoEffect.cs" />
     <Compile Include="Win2D\SaturationVideoEffect.cs" />

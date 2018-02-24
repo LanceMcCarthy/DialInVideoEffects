@@ -7,7 +7,7 @@ using Windows.Graphics.DirectX.Direct3D11;
 using Windows.Graphics.Effects;
 using Windows.Media.Effects;
 using Windows.Media.MediaProperties;
-using DialIn.VideoEffects.Effects.Helpers;
+using DialIn.VideoEffects.Effects.Common;
 
 namespace DialIn.VideoEffects.Effects.Win2D
 {

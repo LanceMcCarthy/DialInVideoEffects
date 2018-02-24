@@ -8,6 +8,9 @@
       xmlns:viewModels="using:DialIn.VideoEffects.Uwp.ViewModels"
       xmlns:converters="using:DialIn.VideoEffects.Uwp.Converters"
       xmlns:xaml="using:Microsoft.Graphics.Canvas.UI.Xaml"
+      xmlns:primitives="using:Telerik.UI.Xaml.Controls.Primitives"
+      xmlns:data="using:Telerik.UI.Xaml.Controls.Data"
+      xmlns:models="using:DialIn.VideoEffects.Uwp.Models"
       mc:Ignorable="d">
 
     <Page.DataContext>
@@ -25,12 +28,58 @@
             <RowDefinition />
         </Grid.RowDefinitions>
 
-        <TextBlock Text="Video Editing with RadialController"
-                   HorizontalAlignment="Center"
-                   Style="{StaticResource TitleTextBlockStyle}" />
+        <Grid x:Name="HeaderGrid"
+              Background="{ThemeResource AppBarBackgroundThemeBrush}">
+            <Button Content="Clear Effect" 
+                    HorizontalAlignment="Left" 
+                    Click="ClearEffectButton_OnClick"
+                    Margin="10"/>
 
-        <CaptureElement x:Name="PreviewMediaElement"
-                        Grid.Row="1" />
+            <TextBlock Text="Video Editing with RadialController"
+                       HorizontalAlignment="Center"
+                       Style="{StaticResource TitleTextBlockStyle}"
+                       Foreground="{ThemeResource AppBarItemForegroundThemeBrush}"
+                       Margin="10"/>
+        </Grid>
+
+        <Grid x:Name="PreviewAreaGrid"
+                        Grid.Row="1">
+
+            <CaptureElement x:Name="PreviewMediaElement" />
+
+            <ListView x:Name="EffectsListView"
+                      ItemsSource="{Binding VideoEffects}"
+                      SelectedItem="{Binding SelectedEffect, Mode=TwoWay}"
+                      SelectionChanged="EffectsListView_OnSelectionChanged"
+                      HorizontalAlignment="Left">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Background="#AAFFFFFF" Margin="0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition />
+                            </Grid.ColumnDefinitions>
+
+                            <Image Source="{Binding IconImagePath}"
+                                   Stretch="UniformToFill" 
+                                   Width="90"/>
+
+                            <TextBlock Text="{Binding DisplayName}"
+                                       Style="{ThemeResource TitleTextBlockStyle}"
+                                       VerticalAlignment="Center"
+                                       Margin="10,0"
+                                       Grid.Column="1"/>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                    </Style>
+                </ListView.ItemContainerStyle>
+            </ListView>
+        </Grid>
 
         <Grid x:Name="EffectEditorGrid"
               DataContext="{Binding ElementName=Page, Path=DataContext.SelectedEffect}"
@@ -87,23 +136,12 @@
                 VerticalAlignment="Bottom"
                 Margin="10" />
 
-        <Grid x:Name="BusyOverlayGrid"
-              Visibility="{Binding IsBusy}"
-              Grid.Row="0"
-              Grid.RowSpan="2"
-              Background="#CCFFFFFF"
-              Grid.ColumnSpan="2">
-            <StackPanel HorizontalAlignment="Center"
-                        VerticalAlignment="Center">
-                <ProgressRing x:Name="BusyIndicator"
-                              Width="100"
-                              IsActive="{Binding IsBusy}"
-                              Height="100" />
-                <TextBlock x:Name="BusyMessage"
-                           Foreground="Black"
-                           Text="{Binding IsBusyMessage}"
-                           HorizontalAlignment="Center" />
-            </StackPanel>
-        </Grid>
+        <primitives:RadBusyIndicator IsActive="{Binding IsBusy}" 
+                                     Content="{Binding IsBusyMessage}" 
+                                     AnimationStyle="AnimationStyle7"
+                                     Background="#CCFFFFFF"
+                                     Grid.Row="0"
+                                     Grid.RowSpan="2"
+                                     Grid.ColumnSpan="2"/>
     </Grid>
 </Page>

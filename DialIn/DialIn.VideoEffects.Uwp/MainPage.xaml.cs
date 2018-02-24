@@ -17,6 +17,7 @@ using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Navigation;
 using DialIn.VideoEffects.Uwp.Common;
+using DialIn.VideoEffects.Uwp.Models;
 
 namespace DialIn.VideoEffects.Uwp
 {
@@ -49,9 +50,13 @@ namespace DialIn.VideoEffects.Uwp
         {
             base.OnNavigatedTo(e);
 
+            EffectsListView.Visibility = RadialControllerConfiguration.IsAppControllerEnabled 
+                ? Visibility.Collapsed 
+                : Visibility.Visible;
+
             // Setup RadialController and add custom menu items
             ConfigureRadialController();
-
+            
             // Set up preview video stream
             await InitializeVideoAsync();
         }
@@ -70,10 +75,31 @@ namespace DialIn.VideoEffects.Uwp
 
         #endregion
 
+        #region ListView Related (for when there is no RadialController detected)
+
+        private async void EffectsListView_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (PageViewModel.SelectedEffect == null)
+                return;
+
+            await ClearVideoEffectsAsync();
+            await ApplyVideoEffectAsync();
+        }
+        private async void ClearEffectButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            await ClearVideoEffectsAsync();
+            PageViewModel.SelectedEffect = null;
+        }
+
+        #endregion
+
         #region radial controller 
 
         private void ConfigureRadialController()
         {
+            if (!RadialControllerConfiguration.IsAppControllerEnabled)
+                return;
+
             // Setup DialController
             dialController = RadialController.CreateForCurrentView();
             dialController.RotationResolutionInDegrees = 1;
@@ -87,13 +113,13 @@ namespace DialIn.VideoEffects.Uwp
             config.SetDefaultMenuItems(new[] { RadialControllerSystemMenuItemKind.Scroll });
 
             // Add a custom menu item for each of the video effects
-            foreach (var effect in PageViewModel.VideoEffects)
+            foreach (VideoEffectItemViewModel effect in PageViewModel.VideoEffects)
             {
                 // Create a menu item, using the effect's name and thumbnail
                 var menuItem = RadialControllerMenuItem.CreateFromIcon(effect.DisplayName,
                     RandomAccessStreamReference.CreateFromUri(new Uri(effect.IconImagePath)));
 
-                // Hook up it's invoked (aka selected) event handler
+                // Hook up the menu item's invoked (aka clicked/selected) event handler
                 menuItem.Invoked += MenuItem_Invoked;
 
                 // Add it to the RadialDial
@@ -144,7 +170,7 @@ namespace DialIn.VideoEffects.Uwp
                 HideBusyIndicator();
             }
         }
-
+        
         private async void MenuItem_Invoked(RadialControllerMenuItem sender, object args)
         {
             var selectedEffect = PageViewModel.VideoEffects.FirstOrDefault(e => e.DisplayName == sender?.DisplayText);
@@ -419,5 +445,7 @@ namespace DialIn.VideoEffects.Uwp
         }
 
         #endregion
+
+        
     }
 }

@@ -1,14 +1,11 @@
 ﻿using System;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using Windows.UI.Xaml;
+using DialIn.VideoEffects.Uwp.ViewModels;
 
 namespace DialIn.VideoEffects.Uwp.Models
 {
-    public class VideoEffectItemViewModel : INotifyPropertyChanged
+    public class VideoEffectItemViewModel : ViewModelBase
     {
-        #region fields
-
         private Type videoEffect;
         private string displayName;
         private float minPropertyValue;
@@ -22,31 +19,15 @@ namespace DialIn.VideoEffects.Uwp.Models
         private Visibility sliderVisiblility = Visibility.Collapsed;
         private Visibility toggleVisibility = Visibility.Collapsed;
 
-        #endregion
+        public VideoEffectItemViewModel() {}
 
-        #region constructors
-
-        public VideoEffectItemViewModel() { }
-
-        /// <summary>
-        /// Model for real-time video effects. 
-        /// </summary>
-        /// <param name="effect">Needs to be custom IBasicVideoEffect</param>
-        /// <param name="effectName">Name sets both display name AND icon file name</param>
         public VideoEffectItemViewModel(Type effect, string effectName)
         {
             videoEffect = effect;
             displayName = effectName;
             iconImagePath = $"ms-appx:///Images/{effectName}.jpg";
         }
-
-        /// <summary>
-        /// Model for real-time video effects using a Toggle for properties. 
-        /// </summary>
-        /// <param name="effect">Needs to be custom IBasicVideoEffect</param>
-        /// <param name="effectName">Name sets both display name AND icon file name</param>
-        ///  /// <param name="propertyName">The effect's alterable property name (i.e. Intensity, Amount or Angle)</param>
-        /// /// <param name="defaultValue">Default Value for Toggle Switch</param>
+        
         public VideoEffectItemViewModel(Type effect, string effectName, string propertyName, bool defaultValue)
         {
             videoEffect = effect;
@@ -57,15 +38,6 @@ namespace DialIn.VideoEffects.Uwp.Models
             isToggleEnabled = true;
         }
         
-        /// <summary>
-        /// Model for real-time video effects using a Slider for properties.
-        /// </summary>
-        /// <param name="effect">Needs to be custom IBasicVideoEffect</param>
-        /// <param name="effectName">Name sets both display name AND icon file name</param>
-        /// <param name="propertyName">The effect's alterable property (i.e. Intensity, Amount or Angle)</param>
-        /// <param name="defaultValue">Default Value for Slider</param>
-        /// <param name="minValue">Minimum Property Value</param>
-        /// <param name="maxValue">Maximum Property Value</param>
         public VideoEffectItemViewModel(Type effect, string effectName, string propertyName, float defaultValue, float maxValue, float minValue = 0f)
         {
             videoEffect = effect;
@@ -77,94 +49,77 @@ namespace DialIn.VideoEffects.Uwp.Models
             minPropertyValue = minValue;
             isSliderEnabled = true;
         }
-
-        #endregion
-
-        #region Properties
-
+        
         public Type VideoEffect
         {
-            get { return videoEffect; }
-            set { videoEffect = value; OnPropertyChanged(nameof(VideoEffect)); }
+            get => videoEffect;
+            set => SetProperty(ref videoEffect, value);
         }
 
         public string DisplayName
         {
-            get { return displayName; }
-            set { displayName = value; OnPropertyChanged(nameof(DisplayName)); }
+            get => displayName;
+            set => SetProperty(ref displayName, value);
         }
 
         public float MinPropertyValue
         {
-            get { return minPropertyValue; }
-            set { minPropertyValue = value; OnPropertyChanged(nameof(MinPropertyValue)); }
+            get => minPropertyValue;
+            set => SetProperty(ref minPropertyValue, value);
         }
 
         public float MaxPropertyValue
         {
-            get { return maxPropertyValue; }
-            set { maxPropertyValue = value; OnPropertyChanged(nameof(MaxPropertyValue)); }
+            get => maxPropertyValue;
+            set => SetProperty(ref maxPropertyValue, value);
         }
 
         public object PropertyValue
         {
-            get { return propertyValue; }
-            set { propertyValue = value; OnPropertyChanged(nameof(PropertyValue)); }
+            get => propertyValue;
+            set => SetProperty(ref propertyValue, value);
         }
 
         public string PropertyName
         {
-            get { return propertyName; }
-            set { propertyName = value; OnPropertyChanged(nameof(PropertyName)); }
+            get => propertyName;
+            set => SetProperty(ref propertyName, value);
         }
 
         public string IconImagePath
         {
-            get { return iconImagePath; }
-            set { iconImagePath = value; OnPropertyChanged(nameof(IconImagePath)); }
+            get => iconImagePath;
+            set => SetProperty(ref iconImagePath, value);
         }
 
         public bool IsSelected
         {
-            get { return isSelected; }
-            set { isSelected = value; OnPropertyChanged(nameof(IsSelected)); }
+            get => isSelected;
+            set => SetProperty(ref isSelected, value);
         }
 
         public bool IsSliderEnabled
         {
-            get { return isSliderEnabled; }
-            set { isSliderEnabled = value; OnPropertyChanged(nameof(IsSliderEnabled)); }
+            get => isSliderEnabled;
+            set => SetProperty(ref isSliderEnabled, value);
         }
 
         public Visibility SliderVisiblility
         {
-            get { return sliderVisiblility; }
-            set { sliderVisiblility = value; OnPropertyChanged(nameof(SliderVisiblility)); }
+            get => sliderVisiblility;
+            set => SetProperty(ref sliderVisiblility, value);
         }
 
         public bool IsToggleEnabled
         {
-            get { return isToggleEnabled; }
-            set { isToggleEnabled = value; OnPropertyChanged(nameof(IsToggleEnabled)); }
+            get => isToggleEnabled;
+            set => SetProperty(ref isToggleEnabled, value);
         }
 
         public Visibility ToggleVisibility
         {
-            get { return toggleVisibility; }
-            set { toggleVisibility = value; OnPropertyChanged(nameof(ToggleVisibility)); }
+            get => toggleVisibility;
+            set => SetProperty(ref toggleVisibility, value);
         }
-
-        #endregion
-
-        #region INPC
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        #endregion
     }
 }
