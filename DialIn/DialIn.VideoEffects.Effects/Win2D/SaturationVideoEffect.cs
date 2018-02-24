@@ -1,92 +1,112 @@
 ﻿using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.Effects;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation.Collections;
 using Windows.Graphics.DirectX.Direct3D11;
 using Windows.Graphics.Effects;
 using Windows.Media.Effects;
 using Windows.Media.MediaProperties;
+using DialIn.VideoEffects.Effects.Helpers;
 
 namespace DialIn.VideoEffects.Effects.Win2D
 {
     public sealed class SaturationVideoEffect : IBasicVideoEffect
     {
-        private VideoEncodingProperties currentEncodingProperties;
-        private CanvasDevice canvasDevice;
-        private IPropertySet configuration;
+        private VideoEncodingProperties _currentEncodingProperties;
+        private CanvasDevice _canvasDevice;
+        private IPropertySet _configuration;
 
         private float Intensity
         {
             get
             {
-                if (configuration != null && configuration.ContainsKey("Intensity"))
-                    return (float)configuration["Intensity"];
+                if (_configuration != null && _configuration.ContainsKey("Intensity"))
+                    return (float)_configuration["Intensity"];
                 else
                     return 0.5f;
-            }
-            set
-            {
-                configuration["Intensity"] = value;
             }
         }
 
         public void ProcessFrame(ProcessVideoFrameContext context)
         {
-            using (CanvasBitmap inputBitmap = CanvasBitmap.CreateFromDirect3D11Surface(canvasDevice, context.InputFrame.Direct3DSurface))
-            using (CanvasRenderTarget renderTarget = CanvasRenderTarget.CreateFromDirect3D11Surface(canvasDevice, context.OutputFrame.Direct3DSurface))
-            using (CanvasDrawingSession ds = renderTarget.CreateDrawingSession())
+            // If memory type is CPU, the frame is in  InputFrame.SoftwareBitmap. 
+            // For GPU, the frame is in InputFrame.Direct3DSurface
+
+            if (context.InputFrame.SoftwareBitmap == null)
             {
-                var saturation = new SaturationEffect()
+                using (var inputBitmap = CanvasBitmap.CreateFromDirect3D11Surface(_canvasDevice, context.InputFrame.Direct3DSurface))
+                using (var renderTarget = CanvasRenderTarget.CreateFromDirect3D11Surface(_canvasDevice, context.OutputFrame.Direct3DSurface))
+                using (var ds = renderTarget.CreateDrawingSession())
                 {
-                    Source = inputBitmap as IGraphicsEffectSource,
-                    Saturation = this.Intensity
-                };
-                ds.DrawImage(saturation);
+                    var saturation = new SaturationEffect()
+                    {
+                        Source = inputBitmap,
+                        Saturation = this.Intensity
+                    };
+                    ds.DrawImage(saturation);
+                }
+
+                return;
+            }
+            
+            if (context.InputFrame.Direct3DSurface == null)
+            {
+                // InputFrame's raw pixels
+                byte[] inputFrameBytes = new byte[4 * context.InputFrame.SoftwareBitmap.PixelWidth * context.InputFrame.SoftwareBitmap.PixelHeight];
+                context.InputFrame.SoftwareBitmap.CopyToBuffer(inputFrameBytes.AsBuffer());
+
+                using (var inputBitmap = CanvasBitmap.CreateFromBytes(
+                    _canvasDevice,
+                    inputFrameBytes,
+                    context.InputFrame.SoftwareBitmap.PixelWidth,
+                    context.InputFrame.SoftwareBitmap.PixelHeight,
+                    context.InputFrame.SoftwareBitmap.BitmapPixelFormat.ToDirectXPixelFormat()))
+
+                using (var renderTarget = new CanvasRenderTarget(
+                    _canvasDevice,
+                    context.OutputFrame.SoftwareBitmap.PixelWidth,
+                    context.OutputFrame.SoftwareBitmap.PixelHeight,
+                    (float)context.OutputFrame.SoftwareBitmap.DpiX,
+                    context.OutputFrame.SoftwareBitmap.BitmapPixelFormat.ToDirectXPixelFormat(),
+                    CanvasAlphaMode.Premultiplied))
+                {
+                    using (var ds = renderTarget.CreateDrawingSession())
+                    {
+                        var saturation = new SaturationEffect()
+                        {
+                            Source = inputBitmap,
+                            Saturation = this.Intensity
+                        };
+                        ds.DrawImage(saturation);
+
+                    }
+                }
             }
         }
 
         public void SetEncodingProperties(VideoEncodingProperties encodingProperties, IDirect3DDevice device)
         {
-            currentEncodingProperties = encodingProperties;
-
-            //TODO remove from original
-            //_canvasDevice = CanvasDevice.CreateFromDirect3D11Device(device, CanvasDebugLevel.Error);
-            canvasDevice = CanvasDevice.CreateFromDirect3D11Device(device);
+            _currentEncodingProperties = encodingProperties;
+            _canvasDevice = device != null ? CanvasDevice.CreateFromDirect3D11Device(device) : CanvasDevice.GetSharedDevice();
         }
 
         public void SetProperties(IPropertySet configuration)
         {
-            this.configuration = configuration;
+            _configuration = configuration;
         }
 
-        public bool IsReadOnly { get { return false; } }
-        public MediaMemoryTypes SupportedMemoryTypes { get { return MediaMemoryTypes.Gpu; } }
-        public bool TimeIndependent { get { return false; } }
+        public MediaMemoryTypes SupportedMemoryTypes => EffectConstants.SupportedMemoryTypes;
 
-        public IReadOnlyList<VideoEncodingProperties> SupportedEncodingProperties
-        {
-            get
-            {
-                return new List<VideoEncodingProperties>()
-                {
-                    // NOTE: Specifying width and height is only necessary due to bug in media pipeline when
-                    // effect is being used with Media Capture. 
-                    // This can be changed to "0, 0" in a future release of FBL_IMPRESSIVE. 
-                    VideoEncodingProperties.CreateUncompressed(MediaEncodingSubtypes.Argb32, 800, 600)
-                };
-            }
-        }
+        public IReadOnlyList<VideoEncodingProperties> SupportedEncodingProperties => EffectConstants.SupportedEncodingProperties;
 
         public void Close(MediaEffectClosedReason reason)
         {
-            // Clean up devices
-            if (canvasDevice != null)
-                canvasDevice.Dispose();
+            _canvasDevice?.Dispose();
         }
 
-        public void DiscardQueuedFrames()
-        {
-            // No cached frames to discard
-        }
+        public bool IsReadOnly => false;
+        public bool TimeIndependent => false;
+        public void DiscardQueuedFrames() { }
     }
 }

@@ -5,6 +5,8 @@ using Windows.Media.MediaProperties;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.Effects;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.WindowsRuntime;
+using DialIn.VideoEffects.Effects.Helpers;
 
 //Sepia docs: http://microsoft.github.io/Win2D/html/T_Microsoft_Graphics_Canvas_Effects_SepiaEffect.htm
 
@@ -16,74 +18,101 @@ namespace DialIn.VideoEffects.Effects.Win2D
     /// </summary>
     public sealed class SepiaVideoEffect : IBasicVideoEffect
     {
-        private VideoEncodingProperties currentEncodingProperties;
-        private CanvasDevice canvasDevice;
-        private IPropertySet configuration;
+        private VideoEncodingProperties _currentEncodingProperties;
+        private CanvasDevice _canvasDevice;
+        private IPropertySet _configuration;
 
         private float Intensity
         {
             get
             {
-                if (configuration != null && configuration.ContainsKey("Intensity"))
-                    return (float)configuration["Intensity"];
+                if (_configuration != null && _configuration.ContainsKey("Intensity"))
+                    return (float)_configuration["Intensity"];
 
                 return 0.5f;
-            }
-            set
-            {
-                configuration["Intensity"] = value;
             }
         }
 
         public void ProcessFrame(ProcessVideoFrameContext context)
         {
-            using (CanvasBitmap inputBitmap = CanvasBitmap.CreateFromDirect3D11Surface(canvasDevice, context.InputFrame.Direct3DSurface))
-            using (CanvasRenderTarget renderTarget = CanvasRenderTarget.CreateFromDirect3D11Surface(canvasDevice, context.OutputFrame.Direct3DSurface))
-            using (CanvasDrawingSession ds = renderTarget.CreateDrawingSession())
+            // If memory type is CPU, the frame is in  InputFrame.SoftwareBitmap. 
+            // For GPU, the frame is in InputFrame.Direct3DSurface
+
+            if (context.InputFrame.SoftwareBitmap == null)
             {
-
-                var sepia = new SepiaEffect
+                using (var inputBitmap = CanvasBitmap.CreateFromDirect3D11Surface(_canvasDevice, context.InputFrame.Direct3DSurface))
+                using (var renderTarget = CanvasRenderTarget.CreateFromDirect3D11Surface(_canvasDevice, context.OutputFrame.Direct3DSurface))
+                using (var ds = renderTarget.CreateDrawingSession())
                 {
-                    Source = inputBitmap,
-                    Intensity = this.Intensity
-                };
+                    var sepia = new SepiaEffect
+                    {
+                        Source = inputBitmap,
+                        Intensity = this.Intensity
+                    };
 
-                ds.DrawImage(sepia);
+                    ds.DrawImage(sepia);
+                }
+
+                return;
+            }
+
+            if (context.InputFrame.Direct3DSurface == null)
+            {
+                // InputFrame's raw pixels
+                byte[] inputFrameBytes = new byte[4 * context.InputFrame.SoftwareBitmap.PixelWidth * context.InputFrame.SoftwareBitmap.PixelHeight];
+                context.InputFrame.SoftwareBitmap.CopyToBuffer(inputFrameBytes.AsBuffer());
+
+                using (var inputBitmap = CanvasBitmap.CreateFromBytes(
+                    _canvasDevice,
+                    inputFrameBytes,
+                    context.InputFrame.SoftwareBitmap.PixelWidth,
+                    context.InputFrame.SoftwareBitmap.PixelHeight,
+                    context.InputFrame.SoftwareBitmap.BitmapPixelFormat.ToDirectXPixelFormat()))
+
+                using (var renderTarget = new CanvasRenderTarget(
+                    _canvasDevice,
+                    context.OutputFrame.SoftwareBitmap.PixelWidth,
+                    context.OutputFrame.SoftwareBitmap.PixelHeight,
+                    (float)context.OutputFrame.SoftwareBitmap.DpiX,
+                    context.OutputFrame.SoftwareBitmap.BitmapPixelFormat.ToDirectXPixelFormat(),
+                    CanvasAlphaMode.Premultiplied))
+                {
+                    using (var ds = renderTarget.CreateDrawingSession())
+                    {
+                        var sepia = new SepiaEffect
+                        {
+                            Source = inputBitmap,
+                            Intensity = this.Intensity
+                        };
+
+                        ds.DrawImage(sepia);
+                    }
+                }
             }
         }
 
         public void SetEncodingProperties(VideoEncodingProperties encodingProperties, IDirect3DDevice device)
         {
-            currentEncodingProperties = encodingProperties;
-            canvasDevice = CanvasDevice.CreateFromDirect3D11Device(device);
+            _currentEncodingProperties = encodingProperties;
+            _canvasDevice = device != null ? CanvasDevice.CreateFromDirect3D11Device(device) : CanvasDevice.GetSharedDevice();
         }
 
         public void SetProperties(IPropertySet configuration)
         {
-            this.configuration = configuration;
+            _configuration = configuration;
         }
+        
+        public MediaMemoryTypes SupportedMemoryTypes => EffectConstants.SupportedMemoryTypes;
 
-        public bool IsReadOnly { get { return false; } }
-        public MediaMemoryTypes SupportedMemoryTypes { get { return MediaMemoryTypes.Gpu; } }
-        public bool TimeIndependent { get { return false; } }
-
-        public IReadOnlyList<VideoEncodingProperties> SupportedEncodingProperties
-        {
-            get
-            {
-                return new List<VideoEncodingProperties>();
-            }
-        }
+        public IReadOnlyList<VideoEncodingProperties> SupportedEncodingProperties => EffectConstants.SupportedEncodingProperties;
 
         public void Close(MediaEffectClosedReason reason)
         {
-            // Clean up devices
-            canvasDevice?.Dispose();
+            _canvasDevice?.Dispose();
         }
 
-        public void DiscardQueuedFrames()
-        {
-            // No cached frames to discard
-        }
+        public bool IsReadOnly => false;
+        public bool TimeIndependent => false;
+        public void DiscardQueuedFrames() { }
     }
 }
